@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import Flask, request, make_response
+from flask import Flask, request, make_response, jsonify
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 
@@ -79,7 +79,34 @@ class NewsletterByID(Resource):
         )
 
         return response
+    
+    #Creating a patch instance method for the newsletter
+    def patch(self, id):
+        newsletter=Newsletter.query.filter_by(id = id).first()
 
+        for attr in request.form:
+            setattr(newsletter,attr, request.form[attr])
+
+        db.session.add(newsletter)
+        db.session.commit()
+
+        response_dict=newsletter.to_dict()
+        response=make_response(jsonify(response_dict), 200)
+        return response
+    
+    #Creating a DELETE instance method
+    def delete(self, id):
+        newsletter_to_delete=Newsletter.query.filter_by(id=id).first()
+
+        db.session.delete(newsletter_to_delete)
+        db.session.commit()
+
+        response_dict={"message": "Record deleted successfully!"}
+
+        response=make_response(jsonify(response_dict), 200)
+
+        return response
+    
 api.add_resource(NewsletterByID, '/newsletters/<int:id>')
 
 
